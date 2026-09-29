@@ -20,6 +20,7 @@ FRAME_SECONDS = 0.12
 IDLE_REPEAT_COUNT = 2
 ACTION_REPEAT_COUNT = 5
 PAUSE_SECONDS = 1.0
+CHARACTER_SCALE = 380 / 90
 
 # (x, y, width, height): y는 이미지 파일의 위쪽을 기준으로 적는다.
 # 행마다 프레임 수와 크기가 달라도 이 목록에 실제 영역을 따로 적으면 된다.
@@ -101,7 +102,7 @@ def draw_current_motion(sprite_sheet, frames, frame_index, motion_progress):
         # 전반부: 중앙에서 왼쪽 바깥으로 이동한다.
         # 후반부: 오른쪽 바깥에서 다시 나타나 목표 위치로 이동한다.
         target_x = 600 if frames is ATTACK_APPROACH else 400
-        move_draw_width = 405
+        move_draw_width = MOVE[0][2] * CHARACTER_SCALE
         half_width = move_draw_width / 2
         if motion_progress < 0.5:
             section_progress = motion_progress * 2
@@ -109,17 +110,20 @@ def draw_current_motion(sprite_sheet, frames, frame_index, motion_progress):
         else:
             section_progress = (motion_progress - 0.5) * 2
             center_x = (800 + half_width) + (target_x - (800 + half_width)) * section_progress
-        draw_clip(sprite_sheet, frames[frame_index], center_x, 300, move_draw_width, 380)
+        move_draw_height = MOVE[0][3] * CHARACTER_SCALE
+        draw_clip(sprite_sheet, frames[frame_index], center_x, 300, move_draw_width, move_draw_height)
     elif frames is ATTACK:
-        # 프레임 폭이 달라도 같은 배율을 사용하며 x=600에서 공격한다.
+        # 이동 모션과 동일한 확대 배율을 유지하며 x=600에서 공격한다.
         frame = frames[frame_index]
-        scale = 380 / frame[3]
-        draw_width = frame[2] * scale
-        draw_clip(sprite_sheet, frame, 600, 300, draw_width, 380)
+        draw_width = frame[2] * CHARACTER_SCALE
+        draw_height = frame[3] * CHARACTER_SCALE
+        draw_clip(sprite_sheet, frame, 600, 300, draw_width, draw_height)
     elif frames is ATTACK_RETURN:
         # 공격이 끝나면 이동 모션으로 x=600에서 중앙까지 돌아온다.
         center_x = 600 + (400 - 600) * motion_progress
-        draw_clip(sprite_sheet, frames[frame_index], center_x, 300, 405, 380)
+        draw_width = MOVE[0][2] * CHARACTER_SCALE
+        draw_height = MOVE[0][3] * CHARACTER_SCALE
+        draw_clip(sprite_sheet, frames[frame_index], center_x, 300, draw_width, draw_height)
     else:
         # 공격을 포함한 나머지 동작도 화면 중앙에서 재생한다.
         draw_clip(sprite_sheet, frames[frame_index], 400, 300, 330, 380)
