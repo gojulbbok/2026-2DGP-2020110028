@@ -17,7 +17,8 @@ from pico2d import (
 
 SHEET_HEIGHT = 949
 FRAME_SECONDS = 0.12
-REPEAT_COUNT = 5
+IDLE_REPEAT_COUNT = 2
+ACTION_REPEAT_COUNT = 5
 PAUSE_SECONDS = 1.0
 
 # (x, y, width, height): y는 이미지 파일의 위쪽을 기준으로 적는다.
@@ -127,11 +128,12 @@ def main():
             elapsed = now - phase_started_at
             frame_index = int(elapsed / FRAME_SECONDS) % len(frames)
             completed_repeats = int(elapsed / (FRAME_SECONDS * len(frames)))
+            repeat_count = IDLE_REPEAT_COUNT if frames is IDLE else ACTION_REPEAT_COUNT
 
-            # 현재 동작을 5회 반복한 다음 1초 동안 멈춘다.
-            if completed_repeats >= REPEAT_COUNT:
+            # 대기는 2회, 나머지 동작은 5회 반복한 다음 1초 동안 멈춘다.
+            if completed_repeats >= repeat_count:
                 frame_index = 0
-                completed_repeats = REPEAT_COUNT
+                completed_repeats = repeat_count
                 phase_started_at = now
                 paused = True
 
