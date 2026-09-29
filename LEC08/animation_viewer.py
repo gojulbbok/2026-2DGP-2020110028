@@ -27,6 +27,9 @@ PAUSE_SECONDS = 1.0
 # 모든 프레임을 75 x 100으로 맞춰 옆 프레임이 섞이거나 좌우로 흔들리지 않게 한다.
 IDLE = [(x, 10, 75, 100) for x in (0, 83, 166, 248, 326, 409)]
 MOVE = [(x, 120, 95, 100) for x in (0, 100, 200, 300, 400, 500)]
+# 같은 이동 프레임을 사용하지만 공격 전후의 위치 계산을 구분하기 위한 목록이다.
+ATTACK_APPROACH = MOVE.copy()
+ATTACK_RETURN = MOVE.copy()
 HIT = [(0, 230, 100, 100)]
 TELEPORT = [
     (0, 345, 95, 100), (100, 345, 95, 100),
@@ -61,7 +64,9 @@ PLAY_ORDER = (
     ("대기", IDLE),
     ("순간이동", TELEPORT),
     ("대기", IDLE),
+    ("공격 위치로 이동", ATTACK_APPROACH),
     ("공격", ATTACK),
+    ("중앙으로 복귀", ATTACK_RETURN),
     ("대기", IDLE),
     ("사망", DEATH),
 )
@@ -90,23 +95,28 @@ def draw_current_motion(sprite_sheet, frames, frame_index, motion_progress):
     if frames is IDLE:
         # 75:100 원본 비율을 유지하면서 화면 중앙의 같은 위치에 그린다.
         draw_clip(sprite_sheet, frames[frame_index], 400, 300, 285, 380)
-    elif frames is MOVE:
+    elif frames is MOVE or frames is ATTACK_APPROACH:
         # 전반부: 중앙에서 왼쪽 바깥으로 이동한다.
-        # 후반부: 오른쪽 바깥에서 다시 나타나 중앙으로 이동한다.
+        # 후반부: 오른쪽 바깥에서 다시 나타나 목표 위치로 이동한다.
+        target_x = 600 if frames is ATTACK_APPROACH else 400
         half_width = 330 / 2
         if motion_progress < 0.5:
             section_progress = motion_progress * 2
             center_x = 400 + (-half_width - 400) * section_progress
         else:
             section_progress = (motion_progress - 0.5) * 2
-            center_x = (800 + half_width) + (400 - (800 + half_width)) * section_progress
+            center_x = (800 + half_width) + (target_x - (800 + half_width)) * section_progress
         draw_clip(sprite_sheet, frames[frame_index], center_x, 300, 330, 380)
     elif frames is ATTACK:
-        # 프레임 폭이 달라도 같은 배율과 중심을 사용해 흔들림을 막는다.
+        # 프레임 폭이 달라도 같은 배율을 사용하며 x=600에서 공격한다.
         frame = frames[frame_index]
         scale = 380 / frame[3]
         draw_width = frame[2] * scale
-        draw_clip(sprite_sheet, frame, 400, 300, draw_width, 380)
+        draw_clip(sprite_sheet, frame, 600, 300, draw_width, 380)
+    elif frames is ATTACK_RETURN:
+        # 공격이 끝나면 이동 모션으로 x=600에서 중앙까지 돌아온다.
+        center_x = 600 + (400 - 600) * motion_progress
+        draw_clip(sprite_sheet, frames[frame_index], center_x, 300, 330, 380)
     else:
         # 공격을 포함한 나머지 동작도 화면 중앙에서 재생한다.
         draw_clip(sprite_sheet, frames[frame_index], 400, 300, 330, 380)
@@ -144,13 +154,13 @@ def main():
             motion_duration = FRAME_SECONDS * len(frames) * repeat_count
             motion_progress = min(elapsed / motion_duration, 1.0)
 
-            # 대기는 2회 후 바로 다음 동작으로 넘어가고,
-            # 나머지 동작은 5회 반복한 다음 1초 동안 멈춘다.
+            # 대기, 공격 위치로 이동, 공격은 다음 동작과 바로 연결한다.
+            # 그 밖의 동작은 완료 후 1초 동안 멈춘다.
             if completed_repeats >= repeat_count:
                 frame_index = 0
                 completed_repeats = repeat_count
                 phase_started_at = now
-                if frames is IDLE:
+                if frames is IDLE or frames is ATTACK_APPROACH or frames is ATTACK:
                     motion_index = (motion_index + 1) % len(PLAY_ORDER)
                     completed_repeats = 0
                 else:
