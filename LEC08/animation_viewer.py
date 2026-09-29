@@ -21,6 +21,7 @@ IDLE_REPEAT_COUNT = 2
 ACTION_REPEAT_COUNT = 5
 PAUSE_SECONDS = 1.0
 CHARACTER_SCALE = 380 / 90
+ATTACK_SCALE = CHARACTER_SCALE * 0.95
 
 # (x, y, width, height): y는 이미지 파일의 위쪽을 기준으로 적는다.
 # 행마다 프레임 수와 크기가 달라도 이 목록에 실제 영역을 따로 적으면 된다.
@@ -113,10 +114,10 @@ def draw_current_motion(sprite_sheet, frames, frame_index, motion_progress):
         move_draw_height = MOVE[0][3] * CHARACTER_SCALE
         draw_clip(sprite_sheet, frames[frame_index], center_x, 300, move_draw_width, move_draw_height)
     elif frames is ATTACK:
-        # 이동 모션과 동일한 확대 배율을 유지하며 x=600에서 공격한다.
+        # 이동 모션과 비슷한 크기를 유지하되 시각적으로 맞도록 5%만 줄인다.
         frame = frames[frame_index]
-        draw_width = frame[2] * CHARACTER_SCALE
-        draw_height = frame[3] * CHARACTER_SCALE
+        draw_width = frame[2] * ATTACK_SCALE
+        draw_height = frame[3] * ATTACK_SCALE
         draw_clip(sprite_sheet, frame, 600, 300, draw_width, draw_height)
     elif frames is ATTACK_RETURN:
         # 공격이 끝나면 이동 모션으로 x=600에서 중앙까지 돌아온다.
