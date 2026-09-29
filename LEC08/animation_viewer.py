@@ -22,8 +22,9 @@ PAUSE_SECONDS = 1.0
 
 # (x, y, width, height): y는 이미지 파일의 위쪽을 기준으로 적는다.
 # 행마다 프레임 수와 크기가 달라도 이 목록에 실제 영역을 따로 적으면 된다.
-# 대기 행은 프레임 간격이 85px이므로 같은 폭으로 잘라 기준점을 고정한다.
-IDLE = [(x, 0, 85, 110) for x in (0, 85, 170, 255, 340, 425)]
+# 대기 행은 각 캐릭터의 실제 중심에 맞춰 자른다.
+# 모든 프레임을 75 x 100으로 맞춰 옆 프레임이 섞이거나 좌우로 흔들리지 않게 한다.
+IDLE = [(x, 10, 75, 100) for x in (0, 83, 166, 248, 326, 409)]
 MOVE = [(x, 120, 95, 100) for x in (0, 100, 200, 300, 400, 500)]
 HIT = [(0, 230, 100, 100)]
 TELEPORT = [
@@ -76,6 +77,9 @@ def draw_current_motion(sprite_sheet, frames, frame_index, has_attack_effect):
         draw_clip(sprite_sheet, frames[frame_index], 235, 300, 280, 320)
         effect_index = frame_index % len(ATTACK_EFFECT)
         draw_clip(sprite_sheet, ATTACK_EFFECT[effect_index], 590, 300, 260, 240)
+    elif frames is IDLE:
+        # 75:100 원본 비율을 유지하면서 화면 중앙의 같은 위치에 그린다.
+        draw_clip(sprite_sheet, frames[frame_index], 400, 300, 285, 380)
     else:
         draw_clip(sprite_sheet, frames[frame_index], 400, 300, 330, 380)
 
