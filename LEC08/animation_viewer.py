@@ -6,6 +6,7 @@ from pico2d import (
     SDLK_ESCAPE,
     clear_canvas,
     close_canvas,
+    draw_rectangle,
     get_events,
     get_time,
     load_image,
@@ -114,6 +115,8 @@ def main():
                 paused = True
 
         clear_canvas()
+        # 투명 스프라이트가 보일 흰색 배경을 매 프레임 먼저 채운다.
+        draw_rectangle(0, 0, 799, 599, 255, 255, 255, 255, filled=True)
         draw_current_motion(sprite_sheet, frames, frame_index, has_attack_effect)
         update_canvas()
 
