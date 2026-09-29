@@ -17,6 +17,7 @@ from pico2d import (
 
 SHEET_HEIGHT = 949
 FRAME_SECONDS = 0.12
+MOVE_FRAME_SECONDS = 0.18
 IDLE_REPEAT_COUNT = 2
 ACTION_REPEAT_COUNT = 5
 PAUSE_SECONDS = 1.0
@@ -160,8 +161,9 @@ def main():
                 paused = False
         else:
             elapsed = now - phase_started_at
-            frame_index = int(elapsed / FRAME_SECONDS) % len(frames)
-            cycle_duration = FRAME_SECONDS * len(frames)
+            frame_seconds = MOVE_FRAME_SECONDS if frames is MOVE else FRAME_SECONDS
+            frame_index = int(elapsed / frame_seconds) % len(frames)
+            cycle_duration = frame_seconds * len(frames)
             completed_repeats = int(elapsed / cycle_duration)
             if frames is IDLE:
                 repeat_count = IDLE_REPEAT_COUNT
