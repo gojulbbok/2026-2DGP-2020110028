@@ -130,12 +130,17 @@ def main():
             completed_repeats = int(elapsed / (FRAME_SECONDS * len(frames)))
             repeat_count = IDLE_REPEAT_COUNT if frames is IDLE else ACTION_REPEAT_COUNT
 
-            # 대기는 2회, 나머지 동작은 5회 반복한 다음 1초 동안 멈춘다.
+            # 대기는 2회 후 바로 다음 동작으로 넘어가고,
+            # 나머지 동작은 5회 반복한 다음 1초 동안 멈춘다.
             if completed_repeats >= repeat_count:
                 frame_index = 0
                 completed_repeats = repeat_count
                 phase_started_at = now
-                paused = True
+                if frames is IDLE:
+                    motion_index = (motion_index + 1) % len(PLAY_ORDER)
+                    completed_repeats = 0
+                else:
+                    paused = True
 
         clear_canvas()
         # 투명 스프라이트가 보일 흰색 배경을 매 프레임 먼저 채운다.
