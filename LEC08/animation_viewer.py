@@ -24,6 +24,7 @@ PAUSE_SECONDS = 1.0
 CHARACTER_SCALE = 380 / 90
 ATTACK_SCALE = CHARACTER_SCALE * 0.95
 IDLE_SCALE = 3.8 * 1.05
+SECONDARY_ACTION_SIZE_SCALE = 1.05
 
 # (x, y, width, height): y는 이미지 파일의 위쪽을 기준으로 적는다.
 # 행마다 프레임 수와 크기가 달라도 이 목록에 실제 영역을 따로 적으면 된다.
@@ -146,6 +147,16 @@ def draw_current_motion(sprite_sheet, frames, frame_index, motion_progress, cycl
         draw_width = MOVE[0][2] * CHARACTER_SCALE
         draw_height = MOVE[0][3] * CHARACTER_SCALE
         draw_clip(sprite_sheet, frames[frame_index], center_x, 300, draw_width, draw_height)
+    elif frames is HIT or frames is TELEPORT:
+        # 피격과 순간이동은 기존 출력 크기에서 5% 키운다.
+        draw_clip(
+            sprite_sheet,
+            frames[frame_index],
+            400,
+            300,
+            330 * SECONDARY_ACTION_SIZE_SCALE,
+            380 * SECONDARY_ACTION_SIZE_SCALE,
+        )
     else:
         # 공격을 포함한 나머지 동작도 화면 중앙에서 재생한다.
         draw_clip(sprite_sheet, frames[frame_index], 400, 300, 330, 380)
