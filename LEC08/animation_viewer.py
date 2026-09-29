@@ -86,10 +86,21 @@ def draw_clip(sprite_sheet, frame, center_x, center_y, draw_width, draw_height):
     )
 
 
-def draw_current_motion(sprite_sheet, frames, frame_index):
+def draw_current_motion(sprite_sheet, frames, frame_index, motion_progress):
     if frames is IDLE:
         # 75:100 원본 비율을 유지하면서 화면 중앙의 같은 위치에 그린다.
         draw_clip(sprite_sheet, frames[frame_index], 400, 300, 285, 380)
+    elif frames is MOVE:
+        # 전반부: 중앙에서 왼쪽 바깥으로 이동한다.
+        # 후반부: 오른쪽 바깥에서 다시 나타나 중앙으로 이동한다.
+        half_width = 330 / 2
+        if motion_progress < 0.5:
+            section_progress = motion_progress * 2
+            center_x = 400 + (-half_width - 400) * section_progress
+        else:
+            section_progress = (motion_progress - 0.5) * 2
+            center_x = (800 + half_width) + (400 - (800 + half_width)) * section_progress
+        draw_clip(sprite_sheet, frames[frame_index], center_x, 300, 330, 380)
     elif frames is ATTACK:
         # 프레임 폭이 달라도 같은 배율과 중심을 사용해 흔들림을 막는다.
         frame = frames[frame_index]
@@ -116,6 +127,7 @@ def main():
         running = not should_close()
         now = get_time()
         _, frames = PLAY_ORDER[motion_index]
+        motion_progress = 1.0 if paused else 0.0
 
         if paused:
             frame_index = 0
@@ -129,6 +141,8 @@ def main():
             frame_index = int(elapsed / FRAME_SECONDS) % len(frames)
             completed_repeats = int(elapsed / (FRAME_SECONDS * len(frames)))
             repeat_count = IDLE_REPEAT_COUNT if frames is IDLE else ACTION_REPEAT_COUNT
+            motion_duration = FRAME_SECONDS * len(frames) * repeat_count
+            motion_progress = min(elapsed / motion_duration, 1.0)
 
             # 대기는 2회 후 바로 다음 동작으로 넘어가고,
             # 나머지 동작은 5회 반복한 다음 1초 동안 멈춘다.
@@ -145,7 +159,7 @@ def main():
         clear_canvas()
         # 투명 스프라이트가 보일 흰색 배경을 매 프레임 먼저 채운다.
         draw_rectangle(0, 0, 799, 599, 255, 255, 255, 255, filled=True)
-        draw_current_motion(sprite_sheet, frames, frame_index)
+        draw_current_motion(sprite_sheet, frames, frame_index, motion_progress)
         update_canvas()
 
     close_canvas()
