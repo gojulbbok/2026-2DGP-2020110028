@@ -23,6 +23,7 @@ ACTION_REPEAT_COUNT = 5
 PAUSE_SECONDS = 1.0
 CHARACTER_SCALE = 380 / 90
 ATTACK_SCALE = CHARACTER_SCALE * 0.95
+IDLE_SCALE = 3.8 * 1.05
 
 # (x, y, width, height): y는 이미지 파일의 위쪽을 기준으로 적는다.
 # 행마다 프레임 수와 크기가 달라도 이 목록에 실제 영역을 따로 적으면 된다.
@@ -99,8 +100,16 @@ def draw_clip(sprite_sheet, frame, center_x, center_y, draw_width, draw_height):
 
 def draw_current_motion(sprite_sheet, frames, frame_index, motion_progress, cycle_progress):
     if frames is IDLE:
-        # 75:100 원본 비율을 유지하면서 화면 중앙의 같은 위치에 그린다.
-        draw_clip(sprite_sheet, frames[frame_index], 400, 300, 285, 380)
+        # 원본 비율을 유지하며 기존 크기보다 5% 크게 화면 중앙에 그린다.
+        frame = frames[frame_index]
+        draw_clip(
+            sprite_sheet,
+            frame,
+            400,
+            300,
+            frame[2] * IDLE_SCALE,
+            frame[3] * IDLE_SCALE,
+        )
     elif frames is MOVE or frames is ATTACK_APPROACH:
         # 전반부: 중앙에서 왼쪽 바깥으로 이동한다.
         # 후반부: 오른쪽 바깥에서 다시 나타나 목표 위치로 이동한다.
