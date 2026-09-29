@@ -26,9 +26,9 @@ PAUSE_SECONDS = 1.0
 # 대기 행은 각 캐릭터의 실제 중심에 맞춰 자른다.
 # 모든 프레임을 75 x 100으로 맞춰 옆 프레임이 섞이거나 좌우로 흔들리지 않게 한다.
 IDLE = [(x, 10, 75, 100) for x in (0, 83, 166, 248, 326, 409)]
-# 이동 행은 모든 프레임을 같은 96 x 115 영역으로 자른다.
+# 이동 행은 모든 프레임을 같은 96 x 90 영역으로 자른다.
 # 실제 캐릭터 중심에 맞춘 x 좌표와 공통 y 범위를 사용해 수평 이동 중 흔들림을 줄인다.
-MOVE = [(x, 115, 96, 115) for x in (0, 97, 203, 307, 404, 508)]
+MOVE = [(x, 115, 96, 90) for x in (0, 97, 203, 307, 404, 508)]
 # 같은 이동 프레임을 사용하지만 공격 전후의 위치 계산을 구분하기 위한 목록이다.
 ATTACK_APPROACH = MOVE.copy()
 ATTACK_RETURN = MOVE.copy()
@@ -101,7 +101,7 @@ def draw_current_motion(sprite_sheet, frames, frame_index, motion_progress):
         # 전반부: 중앙에서 왼쪽 바깥으로 이동한다.
         # 후반부: 오른쪽 바깥에서 다시 나타나 목표 위치로 이동한다.
         target_x = 600 if frames is ATTACK_APPROACH else 400
-        move_draw_width = 317
+        move_draw_width = 405
         half_width = move_draw_width / 2
         if motion_progress < 0.5:
             section_progress = motion_progress * 2
@@ -119,7 +119,7 @@ def draw_current_motion(sprite_sheet, frames, frame_index, motion_progress):
     elif frames is ATTACK_RETURN:
         # 공격이 끝나면 이동 모션으로 x=600에서 중앙까지 돌아온다.
         center_x = 600 + (400 - 600) * motion_progress
-        draw_clip(sprite_sheet, frames[frame_index], center_x, 300, 317, 380)
+        draw_clip(sprite_sheet, frames[frame_index], center_x, 300, 405, 380)
     else:
         # 공격을 포함한 나머지 동작도 화면 중앙에서 재생한다.
         draw_clip(sprite_sheet, frames[frame_index], 400, 300, 330, 380)
