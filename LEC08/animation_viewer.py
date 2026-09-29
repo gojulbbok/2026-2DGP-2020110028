@@ -34,21 +34,20 @@ TELEPORT = [
     (1240, 345, 100, 100),
 ]
 ATTACK = [(x, 500, 95, 105) for x in (0, 100, 200, 300, 400, 500, 600)]
-ATTACK_EFFECT = [(0, 620, 125, 100), (130, 620, 125, 100)]
 DEATH = [(x, 760, 95, 110) for x in (0, 100, 200, 300, 400, 500)]
 
 # 모든 동작은 대기 모션으로 다시 시작하게 한다.
 PLAY_ORDER = (
-    ("대기", IDLE, False),
-    ("이동", MOVE, False),
-    ("대기", IDLE, False),
-    ("피격", HIT, False),
-    ("대기", IDLE, False),
-    ("순간이동", TELEPORT, False),
-    ("대기", IDLE, False),
-    ("공격", ATTACK, True),
-    ("대기", IDLE, False),
-    ("사망", DEATH, False),
+    ("대기", IDLE),
+    ("이동", MOVE),
+    ("대기", IDLE),
+    ("피격", HIT),
+    ("대기", IDLE),
+    ("순간이동", TELEPORT),
+    ("대기", IDLE),
+    ("공격", ATTACK),
+    ("대기", IDLE),
+    ("사망", DEATH),
 )
 
 
@@ -71,16 +70,12 @@ def draw_clip(sprite_sheet, frame, center_x, center_y, draw_width, draw_height):
     )
 
 
-def draw_current_motion(sprite_sheet, frames, frame_index, has_attack_effect):
-    if has_attack_effect:
-        # 공격 중에는 캐릭터를 왼쪽, 이펙트를 오른쪽에 표시한다.
-        draw_clip(sprite_sheet, frames[frame_index], 235, 300, 280, 320)
-        effect_index = frame_index % len(ATTACK_EFFECT)
-        draw_clip(sprite_sheet, ATTACK_EFFECT[effect_index], 590, 300, 260, 240)
-    elif frames is IDLE:
+def draw_current_motion(sprite_sheet, frames, frame_index):
+    if frames is IDLE:
         # 75:100 원본 비율을 유지하면서 화면 중앙의 같은 위치에 그린다.
         draw_clip(sprite_sheet, frames[frame_index], 400, 300, 285, 380)
     else:
+        # 공격을 포함한 나머지 동작도 화면 중앙에서 재생한다.
         draw_clip(sprite_sheet, frames[frame_index], 400, 300, 330, 380)
 
 
@@ -98,7 +93,7 @@ def main():
     while running:
         running = not should_close()
         now = get_time()
-        _, frames, has_attack_effect = PLAY_ORDER[motion_index]
+        _, frames = PLAY_ORDER[motion_index]
 
         if paused:
             frame_index = 0
@@ -122,7 +117,7 @@ def main():
         clear_canvas()
         # 투명 스프라이트가 보일 흰색 배경을 매 프레임 먼저 채운다.
         draw_rectangle(0, 0, 799, 599, 255, 255, 255, 255, filled=True)
-        draw_current_motion(sprite_sheet, frames, frame_index, has_attack_effect)
+        draw_current_motion(sprite_sheet, frames, frame_index)
         update_canvas()
 
     close_canvas()
