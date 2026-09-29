@@ -59,6 +59,9 @@ ATTACK = [
     (1152, 485, 134, 115),
     (1286, 485, 139, 115),
 ]
+# 6번째 줄의 공격 이펙트 두 프레임이다.
+ATTACK_EFFECT = [(0, 600, 130, 125), (130, 600, 130, 125)]
+ATTACK_EFFECT_START_FRAME = 7
 DEATH = [(x, 760, 95, 110) for x in (0, 100, 200, 300, 400, 500)]
 
 # 모든 동작은 대기 모션으로 다시 시작하게 한다.
@@ -132,6 +135,11 @@ def draw_current_motion(sprite_sheet, frames, frame_index, motion_progress, cycl
         draw_width = frame[2] * ATTACK_SCALE
         draw_height = frame[3] * ATTACK_SCALE
         draw_clip(sprite_sheet, frame, 600, 300, draw_width, draw_height)
+
+        # 방패·마법진이 나타나는 후반 프레임에만 중심선 대칭 위치에 이펙트를 그린다.
+        if frame_index >= ATTACK_EFFECT_START_FRAME:
+            effect_index = (frame_index - ATTACK_EFFECT_START_FRAME) % len(ATTACK_EFFECT)
+            draw_clip(sprite_sheet, ATTACK_EFFECT[effect_index], 200, 300, 260, 250)
     elif frames is ATTACK_RETURN:
         # 공격이 끝나면 이동 모션으로 x=600에서 중앙까지 돌아온다.
         center_x = 600 + (400 - 600) * motion_progress
