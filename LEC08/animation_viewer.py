@@ -60,11 +60,12 @@ ATTACK = [
 DEATH = [(x, 760, 95, 110) for x in (0, 100, 200, 300, 400, 500)]
 
 # 모든 동작은 대기 모션으로 다시 시작하게 한다.
+HIT_SEQUENCE = (("대기", IDLE), ("피격", HIT)) * 5
+
 PLAY_ORDER = (
     ("대기", IDLE),
     ("이동", MOVE),
-    ("대기", IDLE),
-    ("피격", HIT),
+    *HIT_SEQUENCE,
     ("대기", IDLE),
     ("순간이동", TELEPORT),
     ("대기", IDLE),
@@ -95,7 +96,7 @@ def draw_clip(sprite_sheet, frame, center_x, center_y, draw_width, draw_height):
     )
 
 
-def draw_current_motion(sprite_sheet, frames, frame_index, motion_progress):
+def draw_current_motion(sprite_sheet, frames, frame_index, motion_progress, cycle_progress):
     if frames is IDLE:
         # 75:100 원본 비율을 유지하면서 화면 중앙의 같은 위치에 그린다.
         draw_clip(sprite_sheet, frames[frame_index], 400, 300, 285, 380)
@@ -103,13 +104,15 @@ def draw_current_motion(sprite_sheet, frames, frame_index, motion_progress):
         # 전반부: 중앙에서 왼쪽 바깥으로 이동한다.
         # 후반부: 오른쪽 바깥에서 다시 나타나 목표 위치로 이동한다.
         target_x = 600 if frames is ATTACK_APPROACH else 400
+        # 일반 이동은 한 프레임 주기마다 한 바퀴, 공격 전 이동은 전체 시간 동안 한 바퀴 돈다.
+        path_progress = cycle_progress if frames is MOVE else motion_progress
         move_draw_width = MOVE[0][2] * CHARACTER_SCALE
         half_width = move_draw_width / 2
-        if motion_progress < 0.5:
-            section_progress = motion_progress * 2
+        if path_progress < 0.5:
+            section_progress = path_progress * 2
             center_x = 400 + (-half_width - 400) * section_progress
         else:
-            section_progress = (motion_progress - 0.5) * 2
+            section_progress = (path_progress - 0.5) * 2
             center_x = (800 + half_width) + (target_x - (800 + half_width)) * section_progress
         move_draw_height = MOVE[0][3] * CHARACTER_SCALE
         draw_clip(sprite_sheet, frames[frame_index], center_x, 300, move_draw_width, move_draw_height)
@@ -146,6 +149,7 @@ def main():
         now = get_time()
         _, frames = PLAY_ORDER[motion_index]
         motion_progress = 1.0 if paused else 0.0
+        cycle_progress = 1.0 if paused else 0.0
 
         if paused:
             frame_index = 0
@@ -157,16 +161,24 @@ def main():
         else:
             elapsed = now - phase_started_at
             frame_index = int(elapsed / FRAME_SECONDS) % len(frames)
-            completed_repeats = int(elapsed / (FRAME_SECONDS * len(frames)))
-            repeat_count = IDLE_REPEAT_COUNT if frames is IDLE else ACTION_REPEAT_COUNT
-            motion_duration = FRAME_SECONDS * len(frames) * repeat_count
+            cycle_duration = FRAME_SECONDS * len(frames)
+            completed_repeats = int(elapsed / cycle_duration)
+            if frames is IDLE:
+                repeat_count = IDLE_REPEAT_COUNT
+            elif frames is HIT:
+                repeat_count = 1
+            else:
+                repeat_count = ACTION_REPEAT_COUNT
+            motion_duration = cycle_duration * repeat_count
             motion_progress = min(elapsed / motion_duration, 1.0)
+            cycle_progress = (elapsed % cycle_duration) / cycle_duration
 
             # 대기, 공격 위치로 이동, 공격은 다음 동작과 바로 연결한다.
             # 그 밖의 동작은 완료 후 1초 동안 멈춘다.
             if completed_repeats >= repeat_count:
                 frame_index = 0
                 completed_repeats = repeat_count
+                cycle_progress = 1.0
                 phase_started_at = now
                 if frames is IDLE or frames is ATTACK_APPROACH or frames is ATTACK:
                     motion_index = (motion_index + 1) % len(PLAY_ORDER)
@@ -177,7 +189,7 @@ def main():
         clear_canvas()
         # 투명 스프라이트가 보일 흰색 배경을 매 프레임 먼저 채운다.
         draw_rectangle(0, 0, 799, 599, 255, 255, 255, 255, filled=True)
-        draw_current_motion(sprite_sheet, frames, frame_index, motion_progress)
+        draw_current_motion(sprite_sheet, frames, frame_index, motion_progress, cycle_progress)
         update_canvas()
 
     close_canvas()
