@@ -4,6 +4,10 @@ from pico2d import *
 TUK_WIDTH, TUK_HEIGHT = 1280, 1024
 CHARACTER_SIZE = 100
 MOVE_SPEED = 5
+RIGHT_FACING_MIN_X = 18
+RIGHT_FACING_MAX_X = 79
+LEFT_FACING_MIN_X = 22
+LEFT_FACING_MAX_X = 83
 
 open_canvas(TUK_WIDTH, TUK_HEIGHT)
 ground = load_image('TUK_GROUND.png')
@@ -43,6 +47,7 @@ def handle_events():
 running = True
 x, y = TUK_WIDTH // 2, TUK_HEIGHT // 2
 frame = 0
+animation_count = 0
 facing = 1
 
 left_pressed = False
@@ -62,16 +67,30 @@ while running:
     elif dx > 0:
         facing = 1
 
+    if facing == 1:
+        visible_min_x = RIGHT_FACING_MIN_X
+        visible_max_x = RIGHT_FACING_MAX_X
+    else:
+        visible_min_x = LEFT_FACING_MIN_X
+        visible_max_x = LEFT_FACING_MAX_X
+
     half_size = CHARACTER_SIZE // 2
-    x = max(half_size, min(TUK_WIDTH - half_size, x + dx * MOVE_SPEED))
+    min_x = half_size - visible_min_x
+    max_x = TUK_WIDTH - (visible_max_x - half_size)
+    x = max(min_x, min(max_x, x + dx * MOVE_SPEED))
     y = max(half_size, min(TUK_HEIGHT - half_size, y + dy * MOVE_SPEED))
 
     if is_moving:
         sprite_y = 100 if facing == 1 else 0
-        frame = (frame + 1) % 8
+        frame_interval = 1
     else:
         sprite_y = 300 if facing == 1 else 200
+        frame_interval = 2
+
+    animation_count += 1
+    if animation_count >= frame_interval:
         frame = (frame + 1) % 8
+        animation_count = 0
 
     clear_canvas()
     ground.draw(TUK_WIDTH // 2, TUK_HEIGHT // 2)
