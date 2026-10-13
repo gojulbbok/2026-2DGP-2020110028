@@ -50,10 +50,10 @@ class ball:
         self.image = load_image('ball21x21.png')
         
     def update(self):
-        pass
+        self.y -= 1
 
     def draw(self):
-        pass
+        self.image.draw(self.x, self.y)
         
 
 
@@ -79,6 +79,9 @@ def reset_world():
 
     zombie = Zombie()
     world.append(zombie)
+
+    Ball = ball()
+    world.append(Ball)
 
     team = [boy() for i in range(11)]  # 11명의 boy 객체를 생성
     world += team  # 팀을 월드에 추가
