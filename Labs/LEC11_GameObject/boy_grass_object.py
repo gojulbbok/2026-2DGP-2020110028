@@ -18,7 +18,7 @@ class grass:
 
 class boy:
     def __init__(self):
-        self.x, self.y = random.randint(100, 700), 90
+        self.x, self.y = random.randint(0, 800), 90
         self.frame = random.randint(0, 7)
         self.image = load_image('run_animation.png')
 
@@ -46,15 +46,16 @@ class Zombie:
 
 class ball:
     def __init__(self):
-        self.x, self.y = random.randint(100, 700), 599
+        self.x, self.y = random.randint(0, 800), 599
         if (random.randint(1, 2) % 2 == 0):
             self.image = load_image('ball21x21.png')
         else:
             self.image = load_image('ball41x41.png')
     
     def update(self):
-        self.y -= random.randint(1,5)
-
+        self.y -= random.randint(1,10)
+        if(self.y <= 60):
+            self.y = 60
     def draw(self):
         self.image.draw(self.x, self.y)
         
@@ -109,7 +110,7 @@ while running:
     handle_events()
     update_world()
     render_world()
-    delay(0.05)
+    delay(0.03)
 
 
 close_canvas()
